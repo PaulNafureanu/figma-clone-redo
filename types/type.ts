@@ -2,7 +2,7 @@ import { BaseUserMeta, User } from "@liveblocks/client";
 import { Gradient, Pattern } from "fabric/fabric-impl";
 
 export enum CursorMode {
-  Hidden,
+  Default,
   Chat,
   ReactionSelector,
   Reaction,
@@ -10,7 +10,7 @@ export enum CursorMode {
 
 export type CursorState =
   | {
-      mode: CursorMode.Hidden;
+      mode: CursorMode.Default;
     }
   | {
       mode: CursorMode.Chat;

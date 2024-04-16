@@ -6,6 +6,9 @@
 
 * {
   font-family: work sans, sans-serif;
+  overflow: hidden;
+  box-sizing: border-box;
+  cursor: none;
 }
 
 @layer utilities {
