@@ -4,12 +4,15 @@
 
 @import "@liveblocks/react-comments/styles.css";
 
-* {
-  font-family: work sans, sans-serif;
+body {
   overflow: hidden;
-  box-sizing: border-box;
   cursor: url("./cursor.png"), auto;
   cursor: url("./cursor.svg"), auto;
+}
+
+* {
+  font-family: work sans, sans-serif;
+  box-sizing: border-box;
 }
 
 *:hover {

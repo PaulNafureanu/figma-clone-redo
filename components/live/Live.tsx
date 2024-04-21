@@ -1,13 +1,14 @@
 import { useMyPresence, useOthers } from "@/liveblocks.config";
 import LiveCursors from "../cursor/LiveCursors";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { CursorMode, Reaction } from "@/types/type";
+import { CursorMode } from "@/types/type";
 import CursorChat from "../cursor/CursorChat";
 import { ReactionWrapper } from "../reaction/ReactionWrapper";
 
 export interface CursorData {
   mode: CursorMode;
   message?: string;
+  reaction?: string;
 }
 
 export default function Live() {
@@ -17,11 +18,11 @@ export default function Live() {
     mode: CursorMode.Default,
   });
 
-  // const [reactions, setReactions] = useState<Reaction[]>([]);
-
   // Create a reference for the cursor data to be readonly in the useEffect and useCallback
   const cursorDataRef = useRef(myCursorData);
-  cursorDataRef.current = myCursorData;
+  useEffect(() => {
+    cursorDataRef.current = myCursorData;
+  }, [myCursorData]);
 
   const handleKeyUp = useCallback(
     (event: KeyboardEvent) => {
@@ -77,7 +78,19 @@ export default function Live() {
           break;
         }
       }
+
+      return () => {
+        setMyPresence({ cursor: undefined, message: undefined });
+        setMyCursorData((cursorData) => {
+          return {
+            mode: CursorMode.Default,
+            message: undefined,
+            reaction: undefined,
+          };
+        });
+      };
     },
+
     [setMyPresence]
   );
 
@@ -109,10 +122,33 @@ export default function Live() {
     [setMyPresence]
   );
 
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent) => {
+      if (myCursorData.mode === CursorMode.ReactionSelector) {
+        setMyCursorData((cursorData) => {
+          return { ...cursorData, mode: CursorMode.Reaction };
+        });
+      }
+    },
+    [myCursorData.mode]
+  );
+
+  const handlePointerUp = useCallback(
+    (event: React.PointerEvent) => {
+      if (myCursorData.mode === CursorMode.Reaction) {
+        setMyCursorData((cursorData) => {
+          return { ...cursorData, mode: CursorMode.Default };
+        });
+      }
+    },
+    [myCursorData.mode]
+  );
+
   // Event handlers for cursor chat
 
   const handleCursorChatChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
+      console.log("Here");
       setMyCursorData({
         ...cursorDataRef.current,
         message: event.currentTarget?.value,
@@ -121,12 +157,20 @@ export default function Live() {
     []
   );
 
+  const handleReactionSelection = useCallback((reaction: string) => {
+    setMyCursorData((cursorData) => {
+      return { ...cursorData, reaction };
+    });
+  }, []);
+
   return (
     <div
       className="relative w-full h-full flex justify-center items-center text-center"
       style={{ zIndex: 0 }}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
     >
       <h1 className="text-2xl text-white">Hello Figma Clone </h1>
 
@@ -139,7 +183,7 @@ export default function Live() {
       <ReactionWrapper
         presence={myPresence}
         cursorData={myCursorData}
-        onReactionSelected={(reaction) => {}}
+        onReactionSelected={handleReactionSelection}
       />
     </div>
   );
