@@ -1,6 +1,6 @@
 "use client";
 
-import Live from "@/components/Live";
+import Live from "@/components/live/Live";
 
 export default function Page() {
   return (

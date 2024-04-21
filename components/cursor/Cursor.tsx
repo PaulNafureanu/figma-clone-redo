@@ -1,21 +1,21 @@
+import getPixels from "@/lib/personal/getPixels";
+import getTranslationStyle from "@/lib/personal/getTranslationStyle";
 import CursorSVG from "@/public/assets/CursorSVG";
 import React from "react";
 
 interface Props {
   color: string;
-  x: number;
-  y: number;
+  position?: { x: number; y: number };
   message?: string;
 }
 
-function Cursor({ color, x, y, message }: Props) {
-  const xPx = Math.round(x * (window?.innerWidth || 1));
-  const yPx = Math.round(y * (window?.innerHeight || 1));
+function Cursor({ color, position, message }: Props) {
+  const translationSyle = getTranslationStyle(getPixels(position));
 
   return (
     <div
-      className="pointer-events-none absolute top-0 left-0"
-      style={{ transform: `translate(${xPx}px, ${yPx}px)` }}
+      className="pointer-events-none absolute"
+      style={{ ...translationSyle, zIndex: 9 }}
     >
       <CursorSVG color={color} />
 

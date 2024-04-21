@@ -8,7 +8,13 @@
   font-family: work sans, sans-serif;
   overflow: hidden;
   box-sizing: border-box;
-  cursor: none;
+  cursor: url("./cursor.png"), auto;
+  cursor: url("./cursor.svg"), auto;
+}
+
+*:hover {
+  cursor: url("./cursor.png"), auto;
+  cursor: url("./cursor.svg"), auto;
 }
 
 @layer utilities {
