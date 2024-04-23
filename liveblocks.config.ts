@@ -51,8 +51,8 @@ const client = createClient({
 // and that will automatically be kept in sync. Accessible through the
 // `user.presence` property. Must be JSON-serializable.
 export type Presence = {
-  cursor?: { x: number; y: number };
-  message?: string;
+  cursor: { x: number; y: number };
+  message: string;
   // ...
 };
 

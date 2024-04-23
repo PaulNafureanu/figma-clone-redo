@@ -1,43 +1,35 @@
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import ReactionSelector from "./ReactionButton";
-import { CursorData } from "../live/Live";
-import { CursorMode, Reaction } from "@/types/type";
-import FlyingReaction from "./FlyingReaction";
-import { Presence } from "@/liveblocks.config";
 import getPixels from "@/lib/personal/getPixels";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { Cursor, CursorMode } from "../../hooks/useCursor";
+import { Reaction } from "../../hooks/useReaction";
+import FlyingReaction from "./FlyingReaction";
+import ReactionSelector from "./ReactionButton";
 
 interface Props {
-  presence: Presence;
-  cursorData: CursorData;
-  onReactionSelected: (reaction: string) => void;
+  cursor: Cursor;
+  reaction: Reaction;
+  onReactionSelected: (value: string) => void;
 }
 
 export const ReactionWrapper = ({
-  presence,
-  cursorData,
+  cursor,
+  reaction,
   onReactionSelected,
 }: Props) => {
   const [reactions, setReactions] = useState<Reaction[]>([]);
 
   // Add reactions
-
   const handleSetReactions = useCallback<
     () => NodeJS.Timeout | undefined
   >(() => {
-    if (cursorData.mode === CursorMode.Reaction && presence.cursor) {
-      const { xPx, yPx } = getPixels(presence.cursor);
+    if (cursor.mode === CursorMode.Reaction) {
+      const { xPx, yPx } = getPixels(cursor.position);
       const tick = () => {
         setReactions((reactions) =>
           reactions.concat([
             {
               point: { x: xPx, y: yPx },
-              value: cursorData.reaction || "",
+              value: reaction.value,
               timestamp: Date.now(),
             },
           ])
@@ -46,7 +38,7 @@ export const ReactionWrapper = ({
 
       return setInterval(tick, 100);
     }
-  }, [cursorData.mode, cursorData.reaction, presence.cursor]);
+  }, [cursor.mode, cursor.position, reaction.value]);
 
   useEffect(() => {
     const timeout = handleSetReactions();
@@ -54,7 +46,6 @@ export const ReactionWrapper = ({
   }, [handleSetReactions]);
 
   // Remove reactions
-
   const handleRemoveReactions = useCallback(() => {
     if (reactions.length > 0) {
       const tick = () => {
@@ -71,14 +62,12 @@ export const ReactionWrapper = ({
     return () => (timeout === undefined ? undefined : clearTimeout(timeout));
   }, [handleRemoveReactions]);
 
-  // render
-
   return (
     <Fragment>
-      {cursorData.mode === CursorMode.ReactionSelector && (
+      {cursor.mode === CursorMode.ReactionSelector && (
         <ReactionSelector onReactionSelected={onReactionSelected} />
       )}
-      {cursorData.mode === CursorMode.Reaction &&
+      {cursor.mode === CursorMode.Reaction &&
         reactions.map((reaction) => (
           <FlyingReaction
             key={reaction.timestamp.toString()}

@@ -1,9 +1,13 @@
-import { LiveCursorProps } from "@/types/type";
-import React from "react";
-import Cursor from "./Cursor";
 import { COLORS } from "@/constants";
+import { Presence } from "@/liveblocks.config";
+import { BaseUserMeta, User } from "@liveblocks/client";
+import Cursor from "./Cursor";
 
-function LiveCursors({ others }: LiveCursorProps) {
+interface Props {
+  others: readonly User<Presence, BaseUserMeta>[];
+}
+
+function LiveCursors({ others }: Props) {
   return others.map(({ connectionId, presence }) => {
     if (presence && presence.cursor) {
       return (

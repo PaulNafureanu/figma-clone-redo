@@ -1,7 +1,6 @@
 import getPixels from "@/lib/personal/getPixels";
 import getTranslationStyle from "@/lib/personal/getTranslationStyle";
 import CursorSVG from "@/public/assets/CursorSVG";
-import React from "react";
 
 interface Props {
   color: string;

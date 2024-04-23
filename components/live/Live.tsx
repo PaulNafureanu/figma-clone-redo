@@ -1,167 +1,56 @@
 import { useMyPresence, useOthers } from "@/liveblocks.config";
-import LiveCursors from "../cursor/LiveCursors";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { CursorMode } from "@/types/type";
+import React from "react";
+import useChat from "../../hooks/useChat";
+import useCursor, { CursorMode } from "../../hooks/useCursor";
+import useKeyboard from "../../hooks/useKeyboard";
+import useReaction from "../../hooks/useReaction";
 import CursorChat from "../cursor/CursorChat";
+import LiveCursors from "../cursor/LiveCursors";
 import { ReactionWrapper } from "../reaction/ReactionWrapper";
-
-export interface CursorData {
-  mode: CursorMode;
-  message?: string;
-  reaction?: string;
-}
 
 export default function Live() {
   const others = useOthers();
-  const [myPresence, setMyPresence] = useMyPresence();
-  const [myCursorData, setMyCursorData] = useState<CursorData>({
-    mode: CursorMode.Default,
-  });
+  const [presence, setPresence] = useMyPresence();
+  const [cursor, dispatchCursorEvent] = useCursor();
+  const [chat, dispatchChatEvent] = useChat();
+  const [reaction, dispatchReactionEvent] = useReaction();
 
-  // Create a reference for the cursor data to be readonly in the useEffect and useCallback
-  const cursorDataRef = useRef(myCursorData);
-  useEffect(() => {
-    cursorDataRef.current = myCursorData;
-  }, [myCursorData]);
+  // Listen for keyboard events
+  useKeyboard(chat, dispatchCursorEvent, dispatchChatEvent, setPresence);
 
-  const handleKeyUp = useCallback(
-    (event: KeyboardEvent) => {
-      const key = event.key.toUpperCase();
-      switch (key) {
-        case "\\": {
-          setMyCursorData((cursorData) => {
-            const newCursorMode =
-              cursorData.mode === CursorMode.Chat
-                ? CursorMode.Default
-                : CursorMode.Chat;
-            return { mode: newCursorMode };
-          });
+  // Event handlers for pointer events
+  const handlePointerMove = (event: React.PointerEvent) => {
+    dispatchCursorEvent({ type: "MOVE_POINTER", event });
+    setPresence({ cursor: cursor.position });
+  };
 
-          break;
-        }
+  const handlePointerLeave = () => {
+    dispatchCursorEvent({ type: "REVERT_TO_DEFAULT" });
+  };
 
-        case "ENTER": {
-          setMyPresence({ message: cursorDataRef.current.message });
-          setMyCursorData(() => {
-            return {
-              mode: CursorMode.Default,
-              message: undefined,
-            };
-          });
-          break;
-        }
+  const handlePointerDown = () => {
+    if (cursor.mode === CursorMode.ReactionSelector) {
+      dispatchCursorEvent({ type: "START_REACTION" });
+    }
+  };
 
-        case "ESCAPE": {
-          setMyPresence({ message: undefined });
-          setMyCursorData(() => {
-            return {
-              mode: CursorMode.Default,
-              message: undefined,
-            };
-          });
-          break;
-        }
+  const handlePointerUp = () => {
+    if (cursor.mode === CursorMode.Reaction) {
+      dispatchCursorEvent({ type: "REVERT_TO_DEFAULT" });
+    }
+  };
 
-        case "E": {
-          setMyCursorData((cursorData) => {
-            const newCursorMode =
-              cursorData.mode === CursorMode.ReactionSelector
-                ? CursorMode.Default
-                : CursorMode.ReactionSelector;
-            return { mode: newCursorMode };
-          });
+  // Event handlers for chat events
+  const handleCursorChatChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    dispatchChatEvent({ type: "CHANGE_MESSAGE", event });
+  };
 
-          break;
-        }
-
-        default: {
-          break;
-        }
-      }
-
-      return () => {
-        setMyPresence({ cursor: undefined, message: undefined });
-        setMyCursorData((cursorData) => {
-          return {
-            mode: CursorMode.Default,
-            message: undefined,
-            reaction: undefined,
-          };
-        });
-      };
-    },
-
-    [setMyPresence]
-  );
-
-  useEffect(() => {
-    window.addEventListener("keyup", handleKeyUp);
-    return () => {
-      window.removeEventListener("keyup", handleKeyUp);
-    };
-  }, [handleKeyUp]);
-
-  // Event handlers for mouse events
-
-  const handlePointerMove = useCallback(
-    (event: React.PointerEvent) => {
-      const x = event.clientX / (window?.innerWidth || 1);
-      const y = event.clientY / (window?.innerHeight || 1);
-      setMyPresence({ cursor: { x, y } });
-    },
-    [setMyPresence]
-  );
-
-  const handlePointerLeave = useCallback(
-    (event: React.PointerEvent) => {
-      setMyPresence({ cursor: undefined });
-      setMyCursorData((cursorData) => {
-        return { ...cursorData, mode: CursorMode.Default };
-      });
-    },
-    [setMyPresence]
-  );
-
-  const handlePointerDown = useCallback(
-    (event: React.PointerEvent) => {
-      if (myCursorData.mode === CursorMode.ReactionSelector) {
-        setMyCursorData((cursorData) => {
-          return { ...cursorData, mode: CursorMode.Reaction };
-        });
-      }
-    },
-    [myCursorData.mode]
-  );
-
-  const handlePointerUp = useCallback(
-    (event: React.PointerEvent) => {
-      if (myCursorData.mode === CursorMode.Reaction) {
-        setMyCursorData((cursorData) => {
-          return { ...cursorData, mode: CursorMode.Default };
-        });
-      }
-    },
-    [myCursorData.mode]
-  );
-
-  // Event handlers for cursor chat
-
-  const handleCursorChatChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      console.log("Here");
-      setMyCursorData({
-        ...cursorDataRef.current,
-        message: event.currentTarget?.value,
-      });
-    },
-    []
-  );
-
-  const handleReactionSelection = useCallback((reaction: string) => {
-    setMyCursorData((cursorData) => {
-      return { ...cursorData, reaction };
-    });
-  }, []);
+  // Event handlers for reactions' events
+  const handleReactionSelection = (value: string) => {
+    dispatchReactionEvent({ type: "SELECT_REACTION", value });
+  };
 
   return (
     <div
@@ -176,13 +65,14 @@ export default function Live() {
 
       <LiveCursors others={others} />
       <CursorChat
-        presence={myPresence}
-        cursorData={myCursorData}
+        presence={presence}
+        cursor={cursor}
+        chat={chat}
         onChange={handleCursorChatChange}
       />
       <ReactionWrapper
-        presence={myPresence}
-        cursorData={myCursorData}
+        cursor={cursor}
+        reaction={reaction}
         onReactionSelected={handleReactionSelection}
       />
     </div>
