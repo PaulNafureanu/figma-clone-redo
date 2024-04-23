@@ -13,7 +13,8 @@ interface Props {
 }
 
 function CursorChat({ presence, cursor, chat, onChange }: Props) {
-  const translationSyle = getTranslationStyle(getPixels(cursor.position));
+  const { xPx, yPx } = getPixels(cursor.position);
+  const translationSyle = getTranslationStyle({ xPx: xPx + 10, yPx: yPx + 10 });
 
   return (
     <div className="absolute" style={{ ...translationSyle, zIndex: 10 }}>

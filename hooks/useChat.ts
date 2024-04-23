@@ -11,7 +11,7 @@ export type ChatAction =
 function ChatReducer(chat: Chat, action: ChatAction) {
   switch (action.type) {
     case "CHANGE_MESSAGE": {
-      const message = action.event.currentTarget?.value || "";
+      const message = action.event.target.value;
       return { ...chat, message };
     }
 

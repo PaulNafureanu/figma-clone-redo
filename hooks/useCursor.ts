@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 
 export enum CursorMode {
   Default,
@@ -77,7 +77,7 @@ export default function useCursor(initialState?: Cursor) {
     CursorReducer,
     initialState ?? {
       mode: CursorMode.Default,
-      position: { x: 0, y: 0 },
+      position: { x: 0.45, y: 0.8 },
     }
   );
 }

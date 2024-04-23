@@ -16,7 +16,13 @@ export default function Live() {
   const [reaction, dispatchReactionEvent] = useReaction();
 
   // Listen for keyboard events
-  useKeyboard(chat, dispatchCursorEvent, dispatchChatEvent, setPresence);
+  useKeyboard(
+    chat,
+    cursor,
+    dispatchChatEvent,
+    dispatchCursorEvent,
+    setPresence
+  );
 
   // Event handlers for pointer events
   const handlePointerMove = (event: React.PointerEvent) => {

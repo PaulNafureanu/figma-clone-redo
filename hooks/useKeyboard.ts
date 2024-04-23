@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Chat, ChatAction } from "./useChat";
-import { CursorAction } from "./useCursor";
+import { Cursor, CursorAction, CursorMode } from "./useCursor";
 import { Presence } from "@/liveblocks.config";
 
 type PressenceSetter = (
@@ -15,8 +15,9 @@ type PressenceSetter = (
 // Event handlers for keyboard events
 export default function useKeyboard(
   chat: Chat,
-  dispatchCursorEvent: React.Dispatch<CursorAction>,
+  cursor: Cursor,
   dispatchChatEvent: React.Dispatch<ChatAction>,
+  dispatchCursorEvent: React.Dispatch<CursorAction>,
   setPresence: PressenceSetter
 ) {
   // Define refs for the reactive values to use them within a non-reactive logic,
@@ -25,6 +26,11 @@ export default function useKeyboard(
   useEffect(() => {
     chatRef.current = chat;
   }, [chat]);
+
+  const cursorRef = useRef(cursor);
+  useEffect(() => {
+    cursorRef.current = cursor;
+  }, [cursor]);
 
   const dispatchCursorEventRef = useRef(dispatchCursorEvent);
   useEffect(() => {
@@ -44,13 +50,17 @@ export default function useKeyboard(
   const handleKeyUp = useCallback((event: KeyboardEvent) => {
     switch (event.key.toUpperCase()) {
       case "\\": {
-        dispatchCursorEventRef.current({ type: "CHANGE_TO_CHAT_MODE" });
+        if (cursorRef.current.mode !== CursorMode.Chat) {
+          dispatchCursorEventRef.current({ type: "CHANGE_TO_CHAT_MODE" });
+        }
         break;
       }
       case "E": {
-        dispatchCursorEventRef.current({
-          type: "CHANGE_TO_REACTION_SELECTION_MODE",
-        });
+        if (cursorRef.current.mode !== CursorMode.Chat) {
+          dispatchCursorEventRef.current({
+            type: "CHANGE_TO_REACTION_SELECTION_MODE",
+          });
+        }
         break;
       }
       case "ESCAPE": {
@@ -70,7 +80,7 @@ export default function useKeyboard(
         break;
       }
       default: {
-        console.log("Key");
+        // console.log("Key");
       }
     }
   }, []);
